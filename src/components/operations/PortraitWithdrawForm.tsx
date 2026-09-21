@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { useActionState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/form';
 import { Notice } from '@/components/ui/feedback';
 import { withdrawPortrait, type PortraitState } from '@/server/actions/portrait';
 
@@ -39,14 +38,6 @@ export function PortraitWithdrawForm({ portraitId, name }: { portraitId: string;
 
       {confirming ? (
         <>
-          <Input
-            name="reason"
-            placeholder="Why it cannot stay up. The creator is told this."
-            maxLength={300}
-            minLength={10}
-            required
-            autoFocus
-          />
           <div className="flex flex-wrap gap-3">
             <Button type="submit" variant="danger" size="sm" disabled={pending}>
               {pending ? 'Taking it down…' : 'Take down and delete'}

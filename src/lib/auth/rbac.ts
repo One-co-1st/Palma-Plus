@@ -41,18 +41,15 @@ export function isInvitableRole(value: string): value is InvitableRole {
  * Whether this role may ask for its own password reset link, unauthenticated,
  * from the public /forgot page.
  *
- * Creators are the public: there is no administrator standing between a
- * creator and their own account, so self-service is the only door. Staff are
- * the opposite case on purpose. An account with `admin:manage_users` or
- * `honours:confer_the_palma` sitting behind it is a more valuable thing to
- * steal than a mailbox, and a public form that will mint a password-setting
- * link for any email address on request is exactly the door a stolen or
- * guessed staff mailbox walks through. A colleague who forgets their password
- * asks another operator to reissue the link from `/admin/users`, which is
- * audited and requires someone already signed in to act.
+ * Every account holder may. The link goes only to the address already on the
+ * account, it works once, it expires in an hour, and spending it revokes
+ * every live session — the mailbox is the identity proof PALMA has, and a
+ * locked-out operator with no colleague available would otherwise have no way
+ * back in at all. The response is identical whether or not the address has an
+ * account, so the form still cannot be used to enumerate who is on the staff.
  */
 export function canSelfServiceReset(role: Role): boolean {
-  return role === 'creator';
+  return role !== 'visitor';
 }
 
 export const PERMISSIONS = [

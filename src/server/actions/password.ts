@@ -25,14 +25,9 @@ import { RESET_TTL_MS } from '@/domain/password-tokens';
  * The thing this flow must never do is tell a stranger whether an address has
  * a PALMA account. So the answer is the same sentence every time, whether we
  * sent an email or did nothing at all — and the work happens on the other side
- * of that identical response.
- *
- * That same sentence now also covers a second silent case: the address
- * belongs to an account, but it is staff. See `canSelfServiceReset` — a
- * public form that mints a password-setting link for any address on request
- * is the wrong door for an account with `admin:manage_users` behind it, and
- * the visitor asking must not be able to tell the difference between "no
- * account" and "an account this form will not touch."
+ * of that identical response. See `canSelfServiceReset` — every account holder
+ * may ask, and nobody can tell from the outside whether the address they asked
+ * for was real.
  */
 
 export type PasswordState = {
@@ -108,9 +103,8 @@ export async function requestPasswordReset(
   `;
 
   // A closed account gets the same answer as a missing one, and no email.
-  // So does a staff account — see the note above the type. Nothing in the
-  // response, the timing, or the audit log may let a caller tell that case
-  // apart from "no such address."
+  // Nothing in the response, the timing, or the audit log may let a caller
+  // tell that case apart from "no such address."
   if (user && user.isActive && canSelfServiceReset(user.role)) {
     const token = await withTransaction((tx) => issuePasswordSetToken(tx, user.id, RESET_TTL_MS));
 

@@ -13,10 +13,10 @@ const initial: CommercialState = { status: 'idle' };
 /**
  * One switch.
  *
- * Turning something on asks for a reason, because the audit entry is the point:
- * an institution should be able to say when it started selling a thing and who
- * decided. Turning something off does not — stopping is always allowed and
- * never needs justifying.
+ * Turning something on is one click: it starts immediately, and the only
+ * optional extra is an automatic closing date. The audit entry still records
+ * who flipped it and when — that is written by the action, not typed out by
+ * the operator.
  */
 export function FeatureSwitch({
   featureKey,
@@ -87,37 +87,17 @@ export function FeatureSwitch({
 
         {turningOn && !current ? (
           <>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field
-                htmlFor={`launch-${featureKey}`}
-                label="Not before"
-                hint="Optional. Leave blank to start now."
-              >
-                <Input id={`launch-${featureKey}`} name="launchAt" type="date" />
-              </Field>
+            <input type="hidden" name="launchAt" value="" />
+            <input type="hidden" name="reason" value="" />
+            <div className="max-w-60">
               <Field
                 htmlFor={`end-${featureKey}`}
-                label="Ends"
+                label="Closes automatically"
                 hint="Optional. After this it reads as off however the switch is set."
               >
                 <Input id={`end-${featureKey}`} name="endAt" type="date" />
               </Field>
             </div>
-
-            <Field
-              htmlFor={`reason-${featureKey}`}
-              label="Why now"
-              required
-              hint="Recorded in the audit log with your name, against the moment PALMA started selling this. One line."
-            >
-              <Input
-                id={`reason-${featureKey}`}
-                name="reason"
-                maxLength={400}
-                minLength={10}
-                required
-              />
-            </Field>
           </>
         ) : (
           <>

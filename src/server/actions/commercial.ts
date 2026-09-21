@@ -62,19 +62,9 @@ export async function setFeature(
   const entry = feature(parsed.data.key as Parameters<typeof feature>[0]);
   const awardYearId = parsed.data.awardYearId || null;
 
-  // Turning something on needs a reason; turning it off never does. The audit
-  // entry is the point of this whole page — "when did we start selling that,
-  // and who decided?" is a question an institution has to be able to answer
-  // about itself, and an empty string is not an answer. Stopping, by contrast,
-  // is always allowed and never needs justifying.
-  if (parsed.data.enabled && (parsed.data.reason ?? '').trim().length < 10) {
-    return {
-      status: 'error',
-      message:
-        'Say why, in at least ten characters. It is recorded with your name against the moment PALMA started selling this.',
-    };
-  }
-
+  // The audit entry still answers "when did we start selling that, and who
+  // decided?" — the actor and the moment are recorded by this action. A
+  // reason may accompany the change, but nothing here may demand one.
   if (awardYearId && !entry.seasonAware) {
     return {
       status: 'error',

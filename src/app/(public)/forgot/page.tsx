@@ -49,10 +49,9 @@ export default async function ForgotPasswordPage() {
               from wherever you can, a person will read it.
             </p>
             <p className="mt-4">
-              This page is for creator accounts. Judges, moderators and administrators do not set a
-              password here, if you hold one of those accounts and are locked out, ask the
-              administrator who invited you for a new link. Once signed in, everyone changes their
-              password from their own account settings.
+              The link lands on whatever desk your account belongs to — creator, judge, moderator
+              or administrator. Once signed in, everyone can also change their password from their
+              own account settings.
             </p>
           </Reveal>
         </div>

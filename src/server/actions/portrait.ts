@@ -278,7 +278,11 @@ export async function withdrawPortrait(
   }
 
   const portraitId = String(formData.get('portraitId') ?? '');
-  const reason = String(formData.get('reason') ?? '').trim();
+  // No reason is demanded of the desk; the creator is still told something
+  // truthful, and the audit entry carries who acted and when.
+  const reason =
+    String(formData.get('reason') ?? '').trim() ||
+    'Taken down by the moderation desk.';
 
   if (reason.length < 10) {
     return {

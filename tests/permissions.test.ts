@@ -90,12 +90,12 @@ describe('role permissions', () => {
     expect(can('visitor', 'admin:review_nominations')).toBe(false);
   });
 
-  it('reserves the self-service password reset for creators alone', () => {
+  it('lets every account holder ask for a reset link, but not a visitor', () => {
     expect(canSelfServiceReset('creator')).toBe(true);
-    expect(canSelfServiceReset('judge')).toBe(false);
-    expect(canSelfServiceReset('moderator')).toBe(false);
-    expect(canSelfServiceReset('admin')).toBe(false);
-    expect(canSelfServiceReset('super_admin')).toBe(false);
+    expect(canSelfServiceReset('judge')).toBe(true);
+    expect(canSelfServiceReset('moderator')).toBe(true);
+    expect(canSelfServiceReset('admin')).toBe(true);
+    expect(canSelfServiceReset('super_admin')).toBe(true);
     expect(canSelfServiceReset('visitor')).toBe(false);
   });
 });
