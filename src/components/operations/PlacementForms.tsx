@@ -161,7 +161,7 @@ export function PlacementForm({
         {pending ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" />
-            Proposing\u2026
+            Proposing…
           </>
         ) : (
           <>
