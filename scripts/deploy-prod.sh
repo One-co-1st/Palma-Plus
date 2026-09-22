@@ -18,9 +18,9 @@ DEP=$(vercel inspect "$URL" 2>/dev/null | grep -oE 'dpl_[A-Za-z0-9]+' | head -1)
 [ -n "$DEP" ] || { echo "Could not resolve the deployment id for $URL." >&2; exit 1; }
 
 curl -sf -X POST \
-  -H "Authorization: Bearer ${VERCEL_TOKEN:?}" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"alias\":\"$ALIAS\"}" \
-  "https://api.vercel.com/v2/deployments/$DEP/aliases" > /dev/null
+  "https://api.vercel.com/v2/deployments/$DEP/aliases${VERCEL_TEAM_ID:+?teamId=$VERCEL_TEAM_ID}" > /dev/null
 
 echo "Aliased: https://$ALIAS -> $DEP"
