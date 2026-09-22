@@ -65,11 +65,7 @@ export function SeasonRail({
                 {phase.label}
               </span>
               <span className={cn('text-xs', dark ? 'text-ivory/45' : 'text-taupe-deep')}>
-                {state === 'current'
-                  ? 'In progress'
-                  : state === 'complete'
-                    ? 'Announced'
-                    : 'To come'}
+                {state === 'current' ? 'In progress' : state === 'complete' ? 'Done' : 'To come'}
               </span>
             </>
           );

@@ -13,15 +13,15 @@ export const SEASON_STAGES = [
 export type SeasonStage = (typeof SEASON_STAGES)[number];
 
 export const STAGE_LABEL: Record<SeasonStage, string> = {
-  announced: 'Announced',
+  announced: 'Not yet open',
   nominations_open: 'Nominations open',
   nominations_closed: 'Nominations closed',
-  shortlisting: 'Shortlisting',
-  shortlist_announced: 'Shortlist announced',
-  judging: 'Judging',
-  finalists_announced: 'Finalists announced',
-  winners_announced: 'Winners announced',
-  archived: 'Archived',
+  shortlisting: 'Shortlist in progress',
+  shortlist_announced: 'Shortlist published',
+  judging: 'Judging in progress',
+  finalists_announced: 'Finalists published',
+  winners_announced: 'Winners published',
+  archived: 'Past season',
 };
 
 /** The four public beats of a PALMA season, as shown on the season progress rail. */

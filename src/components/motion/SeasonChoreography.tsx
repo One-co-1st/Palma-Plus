@@ -199,7 +199,7 @@ export function SeasonChoreography({
                   {phase.state === 'current'
                     ? 'In progress'
                     : phase.state === 'complete'
-                      ? 'Announced'
+                      ? 'Done'
                       : phase.date
                         ? formatShortDate(phase.date)
                         : 'To come'}

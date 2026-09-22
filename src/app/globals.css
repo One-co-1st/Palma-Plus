@@ -157,6 +157,32 @@
   }
 }
 
+/*
+ * The verdict meter: a hairline that draws itself to the score as the entry
+ * arrives. `--meter` is set inline from the verdict, so the one keyframe
+ * serves every entry on the page.
+ */
+@keyframes palma-meter-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(var(--meter, 0));
+  }
+}
+
+.palma-meter {
+  transform: scaleX(var(--meter, 0));
+  transform-origin: left;
+  animation: palma-meter-draw 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palma-meter {
+    animation: none;
+  }
+}
+
 /* The crown is struck, not faded: it arrives slightly oversized and settles. */
 @keyframes palma-strike {
   from {

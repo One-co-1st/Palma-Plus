@@ -50,6 +50,14 @@ export function SponsorForm({ sponsors }: { sponsors: { id: string; name: string
       </Field>
 
       <Field
+        htmlFor="logoUrl"
+        label="Logo link"
+        hint="An https link to their logo, or /sponsors/… for one we host. Leave it empty and the sponsor's name alone slides in the belt."
+      >
+        <Input id="logoUrl" name="logoUrl" placeholder="https:// or /sponsors/" maxLength={400} />
+      </Field>
+
+      <Field
         htmlFor="summary"
         label="Public description"
         hint="One or two sentences, if they appear on the site."

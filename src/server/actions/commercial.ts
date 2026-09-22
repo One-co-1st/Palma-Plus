@@ -172,6 +172,19 @@ const sponsorSchema = z.object({
   sponsorId: z.string().trim().max(40).optional().or(z.literal('')),
   name: z.string().trim().min(2, 'Give the sponsor a name.').max(120),
   websiteUrl: z.string().trim().url('Enter a valid link.').max(400).optional().or(z.literal('')),
+  logoUrl: z
+    .string()
+    .trim()
+    .max(400)
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (value) =>
+        !value ||
+        value.startsWith('/sponsors/') ||
+        (/^https:\/\/[^?#\s]+$/.test(value) && !value.includes('@')),
+      'A logo link is an https address with no query string, or a /sponsors/… path we host.',
+    ),
   summary: z.string().trim().max(600).optional().or(z.literal('')),
   status: z.enum(['prospect', 'active', 'paused', 'expired', 'terminated']),
   contactName: z.string().trim().max(120).optional().or(z.literal('')),
@@ -196,6 +209,7 @@ export async function saveSponsor(
     sponsorId: formData.get('sponsorId') ?? '',
     name: formData.get('name'),
     websiteUrl: formData.get('websiteUrl') ?? '',
+    logoUrl: formData.get('logoUrl') ?? '',
     summary: formData.get('summary') ?? '',
     status: formData.get('status'),
     contactName: formData.get('contactName') ?? '',
@@ -221,6 +235,7 @@ export async function saveSponsor(
   const data = {
     name: parsed.data.name,
     websiteUrl: parsed.data.websiteUrl || null,
+    logoUrl: parsed.data.logoUrl || null,
     summary: parsed.data.summary || null,
     status: parsed.data.status,
     contactName: parsed.data.contactName || null,
@@ -239,6 +254,7 @@ export async function saveSponsor(
       set
         name = ${data.name},
         "websiteUrl" = ${data.websiteUrl},
+        "logoUrl" = ${data.logoUrl},
         summary = ${data.summary},
         status = ${data.status},
         "contactName" = ${data.contactName},
@@ -264,7 +280,7 @@ export async function saveSponsor(
     }
     const [created] = await sql<{ id: string }[]>`
       insert into "Sponsor" (
-        id, slug, name, "websiteUrl", summary, status,
+        id, slug, name, "websiteUrl", "logoUrl", summary, status,
         "agreementStatus", "contactName", "contactEmail", "internalNotes", "isActive"
       )
       values (
@@ -272,6 +288,7 @@ export async function saveSponsor(
         ${slug},
         ${data.name},
         ${data.websiteUrl},
+        ${data.logoUrl},
         ${data.summary},
         ${data.status},
         ${'none'},

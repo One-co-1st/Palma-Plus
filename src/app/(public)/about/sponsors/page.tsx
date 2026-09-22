@@ -18,33 +18,52 @@ export const metadata = buildMetadata({
  *
  * A belt, not a brochure. The logos slide; the terms fit in a sentence;
  * anything longer lives in the competition rules where it is binding.
+ *
+ * A sponsor's mark is whatever they gave us: an https link to their own logo,
+ * a file we host under /sponsors, or nothing at all, in which case the name
+ * itself is the mark and slides in the belt as type. External links render
+ * through a plain <img> on purpose: the image optimizer proxies nothing, and
+ * a partner's own CDN can serve a partner's own mark.
  */
 export default async function SponsorsPage() {
   const sponsors = await listSponsors();
-  const withLogos = sponsors.filter((sponsor) => sponsor.logoUrl);
 
   return (
     <>
       <Masthead
         eyebrow="The institution"
         title="Partners"
-        standfirst="Sponsorship pays for the ceremony, the archive and the screening team. It buys no influence over judging — none is for sale."
+        standfirst="Sponsorship pays for the ceremony, the archive and the screening team. It buys no influence over judging. None is for sale."
         meta={[`${sponsors.length} partners`, 'No influence over judging']}
       />
 
-      {withLogos.length > 0 ? (
+      {sponsors.length > 0 ? (
         <Section className="py-10 sm:py-12">
           <div className="palma-belt border-stone-deep border-y py-6">
             <div className="palma-belt-track">
-              {[...withLogos, ...withLogos].map((sponsor, index) => {
-                const logo = (
-                  <Image
-                    src={sponsor.logoUrl as string}
-                    alt={`${sponsor.name} logo`}
-                    width={240}
-                    height={40}
-                    className="h-9 w-auto sm:h-10"
-                  />
+              {[...sponsors, ...sponsors].map((sponsor, index) => {
+                const mark = sponsor.logoUrl ? (
+                  sponsor.logoUrl.startsWith('/') ? (
+                    <Image
+                      src={sponsor.logoUrl}
+                      alt={`${sponsor.name} logo`}
+                      width={240}
+                      height={40}
+                      className="h-9 w-auto sm:h-10"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={sponsor.logoUrl}
+                      alt={`${sponsor.name} logo`}
+                      className="h-9 w-auto sm:h-10"
+                      loading="lazy"
+                    />
+                  )
+                ) : (
+                  <span className="font-display text-ink text-xl whitespace-nowrap sm:text-2xl">
+                    {sponsor.name}
+                  </span>
                 );
                 return (
                   <span
@@ -59,10 +78,10 @@ export default async function SponsorsPage() {
                         aria-label={sponsor.name}
                         className="transition-opacity hover:opacity-70"
                       >
-                        {logo}
+                        {mark}
                       </a>
                     ) : (
-                      logo
+                      mark
                     )}
                   </span>
                 );
