@@ -17,6 +17,8 @@ URL=$(echo "$OUT" | grep -oE 'https://[a-z0-9-]+-longhaul1\.vercel\.app' | head 
 DEP=$(vercel inspect "$URL" 2>/dev/null | grep -oE 'dpl_[A-Za-z0-9]+' | head -1)
 [ -n "$DEP" ] || { echo "Could not resolve the deployment id for $URL." >&2; exit 1; }
 
+: "${VERCEL_TOKEN:?VERCEL_TOKEN must be set (see ~/.bashrc on the box)}"
+
 curl -sf -X POST \
   -H "Authorization: Bearer $VERCEL_TOKEN" \
   -H "Content-Type: application/json" \
