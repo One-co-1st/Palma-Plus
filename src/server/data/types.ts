@@ -183,6 +183,7 @@ export type SponsorView = {
   name: string;
   summary: string | null;
   websiteUrl: string | null;
+  logoUrl: string | null;
   tier: 'headline' | 'category_partner' | 'supporting' | 'media';
   categoryName: string | null;
 };

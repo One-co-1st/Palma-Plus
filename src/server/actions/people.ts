@@ -21,6 +21,67 @@ import { INVITE_TTL_MS, RESET_TTL_MS } from '@/domain/password-tokens';
 
 export type PeopleState = { status: 'idle' | 'error' | 'success'; message?: string };
 
+export type AccountSearchHit = {
+  id: string;
+  label: string;
+  detail: string;
+};
+
+/**
+ * Find the person an irreversible action concerns, by name or email.
+ *
+ * Exists so the enforcement desk never has to leave the page to copy a record
+ * id out of another screen: type part of a name or an address and the matching
+ * accounts are shown, and choosing one fills the proposal.
+ */
+export async function searchAccounts(query: string): Promise<AccountSearchHit[]> {
+  try {
+    await authorise('admin:enforce');
+  } catch {
+    return [];
+  }
+
+  const term = query.trim();
+  if (term.length < 2) return [];
+
+  const contains = `%${term.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
+
+  const [accounts, creators] = await Promise.all([
+    sql<{ id: string; name: string; email: string; role: string; isActive: boolean }[]>`
+      select id, name, email, role, "isActive"
+      from "User"
+      where email ilike ${contains} or name ilike ${contains}
+      order by email asc
+      limit 8
+    `,
+    sql<{ userId: string | null; displayName: string; accountEmail: string | null }[]>`
+      select u.id as "userId", c."displayName", u.email as "accountEmail"
+      from "Creator" c
+      left join "User" u on u.id = c."userId"
+      where c."displayName" ilike ${contains}
+      order by c."displayName" asc
+      limit 8
+    `,
+  ]);
+
+  const hits: AccountSearchHit[] = accounts.map((account) => ({
+    id: account.id,
+    label: account.email,
+    detail: `${account.name} · ${account.role.replace('_', ' ')}${account.isActive ? '' : ' · suspended'}`,
+  }));
+
+  for (const creator of creators) {
+    if (!creator.userId || hits.some((hit) => hit.id === creator.userId)) continue;
+    hits.push({
+      id: creator.userId,
+      label: creator.accountEmail ?? creator.displayName,
+      detail: `${creator.displayName} · creator`,
+    });
+  }
+
+  return hits.slice(0, 8);
+}
+
 /**
  * Change an account's role.
  *

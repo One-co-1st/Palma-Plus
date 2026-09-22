@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container, Section, SectionHeading } from '@/components/palma/layout';
 import { Masthead, MastheadPlate, PlateFact } from '@/components/palma/Masthead';
 import { Reveal, RevealGroup, RevealItem } from '@/components/motion/primitives';
@@ -117,6 +118,15 @@ export default async function SponsorsPage() {
                     <span className="palma-label text-champagne-deep">
                       {TIER_LABEL[sponsor.tier]}
                     </span>
+                    {sponsor.logoUrl ? (
+                      <Image
+                        src={sponsor.logoUrl}
+                        alt={`${sponsor.name} logo`}
+                        width={240}
+                        height={40}
+                        className="h-8 w-auto"
+                      />
+                    ) : null}
                     <h3 className="font-display text-2xl leading-tight">{sponsor.name}</h3>
                     {sponsor.summary ? (
                       <p className="text-taupe-deep text-sm leading-relaxed">{sponsor.summary}</p>

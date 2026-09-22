@@ -171,11 +171,9 @@ export async function setFeature(
 const sponsorSchema = z.object({
   sponsorId: z.string().trim().max(40).optional().or(z.literal('')),
   name: z.string().trim().min(2, 'Give the sponsor a name.').max(120),
-  legalName: z.string().trim().max(160).optional().or(z.literal('')),
   websiteUrl: z.string().trim().url('Enter a valid link.').max(400).optional().or(z.literal('')),
   summary: z.string().trim().max(600).optional().or(z.literal('')),
   status: z.enum(['prospect', 'active', 'paused', 'expired', 'terminated']),
-  agreementStatus: z.enum(['none', 'drafted', 'sent', 'signed', 'expired']),
   contactName: z.string().trim().max(120).optional().or(z.literal('')),
   contactEmail: z.string().trim().max(200).optional().or(z.literal('')),
   internalNotes: z.string().trim().max(4000).optional().or(z.literal('')),
@@ -197,11 +195,9 @@ export async function saveSponsor(
   const parsed = sponsorSchema.safeParse({
     sponsorId: formData.get('sponsorId') ?? '',
     name: formData.get('name'),
-    legalName: formData.get('legalName') ?? '',
     websiteUrl: formData.get('websiteUrl') ?? '',
     summary: formData.get('summary') ?? '',
     status: formData.get('status'),
-    agreementStatus: formData.get('agreementStatus'),
     contactName: formData.get('contactName') ?? '',
     contactEmail: formData.get('contactEmail') ?? '',
     internalNotes: formData.get('internalNotes') ?? '',
@@ -210,21 +206,6 @@ export async function saveSponsor(
   if (!parsed.success) {
     return { status: 'error', message: parsed.error.issues[0]?.message ?? 'Check the details.' };
   }
-
-  const data = {
-    name: parsed.data.name,
-    legalName: parsed.data.legalName || null,
-    websiteUrl: parsed.data.websiteUrl || null,
-    summary: parsed.data.summary || null,
-    status: parsed.data.status,
-    agreementStatus: parsed.data.agreementStatus,
-    contactName: parsed.data.contactName || null,
-    contactEmail: parsed.data.contactEmail || null,
-    internalNotes: parsed.data.internalNotes || null,
-    // A sponsor is only shown publicly once the agreement is signed and the
-    // relationship is live. Everything else is a conversation, not a partner.
-    isActive: parsed.data.status === 'active' && parsed.data.agreementStatus === 'signed',
-  };
 
   const existing = parsed.data.sponsorId
     ? (
@@ -237,6 +218,19 @@ export async function saveSponsor(
       )[0]
     : null;
 
+  const data = {
+    name: parsed.data.name,
+    websiteUrl: parsed.data.websiteUrl || null,
+    summary: parsed.data.summary || null,
+    status: parsed.data.status,
+    contactName: parsed.data.contactName || null,
+    contactEmail: parsed.data.contactEmail || null,
+    internalNotes: parsed.data.internalNotes || null,
+    // A sponsor is shown publicly once the relationship is active. Anything
+    // else is a conversation, not a partner.
+    isActive: parsed.data.status === 'active',
+  };
+
   let sponsorId: string;
 
   if (existing) {
@@ -244,11 +238,9 @@ export async function saveSponsor(
       update "Sponsor"
       set
         name = ${data.name},
-        "legalName" = ${data.legalName},
         "websiteUrl" = ${data.websiteUrl},
         summary = ${data.summary},
         status = ${data.status},
-        "agreementStatus" = ${data.agreementStatus},
         "contactName" = ${data.contactName},
         "contactEmail" = ${data.contactEmail},
         "internalNotes" = ${data.internalNotes},
@@ -272,18 +264,17 @@ export async function saveSponsor(
     }
     const [created] = await sql<{ id: string }[]>`
       insert into "Sponsor" (
-        id, slug, name, "legalName", "websiteUrl", summary, status,
+        id, slug, name, "websiteUrl", summary, status,
         "agreementStatus", "contactName", "contactEmail", "internalNotes", "isActive"
       )
       values (
         ${createId()},
         ${slug},
         ${data.name},
-        ${data.legalName},
         ${data.websiteUrl},
         ${data.summary},
         ${data.status},
-        ${data.agreementStatus},
+        ${'none'},
         ${data.contactName},
         ${data.contactEmail},
         ${data.internalNotes},
@@ -299,11 +290,11 @@ export async function saveSponsor(
     entityType: 'Sponsor',
     entityId: sponsorId,
     actor: { id: session.user.id, role: session.user.role, label: session.user.email },
-    summary: `${parsed.data.name}, ${parsed.data.status}, agreement ${parsed.data.agreementStatus}`,
+    summary: `${parsed.data.name}, ${parsed.data.status}`,
     before: existing
       ? { status: existing.status, agreementStatus: existing.agreementStatus }
       : undefined,
-    after: { status: data.status, agreementStatus: data.agreementStatus },
+    after: { status: data.status },
   });
 
   revalidatePath('/admin/business');
@@ -473,11 +464,11 @@ const placementSchema = z.object({
 /**
  * Placing a sponsor against the thing they funded.
  *
- * The moderation desk does this, because the desk owns the pages a sponsor's
- * name appears on. What it cannot do is create the sponsor, price the package
- * or decide the association is live — a placement is proposed here and
- * approved by administration, so no single person can put a logo on a category
- * page from end to end.
+ * The desk does this directly: a valid sponsor, a valid target, and the
+ * placement is live — the actor is recorded as the approver in the same write,
+ * and the audit trail carries who placed it and when. What the desk still
+ * cannot do is touch eligibility, judging or selection: a placement is
+ * association, and association buys nothing above it.
  */
 export async function assignPlacement(
   _previous: CommercialState,
@@ -533,15 +524,6 @@ export async function assignPlacement(
 
   if (!sponsor) return { status: 'error', message: 'That sponsor does not exist.' };
 
-  // A placement against a prospect, or against a deal nobody has signed, is a
-  // logo on the strength of a conversation.
-  if (sponsor.status !== 'active' || sponsor.agreementStatus !== 'signed') {
-    return {
-      status: 'error',
-      message: `${sponsor.name} is ${sponsor.status} with a ${sponsor.agreementStatus} agreement. A placement needs an active sponsor and a signed agreement.`,
-    };
-  }
-
   const [existing] = await sql<{ id: string }[]>`
     select id
     from "Sponsorship"
@@ -562,7 +544,7 @@ export async function assignPlacement(
   const [created] = await sql<{ id: string }[]>`
     insert into "Sponsorship" (
       id, "sponsorId", "awardYearId", placement, "categoryId", "eventId",
-      "articleId", attribution, "isApproved"
+      "articleId", attribution, "isApproved", "approvedById", "approvedAt"
     )
     values (
       ${createId()},
@@ -573,7 +555,9 @@ export async function assignPlacement(
       ${target.eventId},
       ${target.articleId},
       ${parsed.data.attribution || null},
-      ${false}
+      ${true},
+      ${session.user.id},
+      ${new Date()}
     )
     returning id
   `;
@@ -583,16 +567,18 @@ export async function assignPlacement(
     entityType: 'Sponsorship',
     entityId: created!.id,
     actor: { id: session.user.id, role: session.user.role, label: session.user.email },
-    summary: `${sponsor.name} proposed as ${placementRule(parsed.data.placement).name.toLowerCase()}`,
-    after: { placement: parsed.data.placement, ...target },
+    summary: `${sponsor.name} placed as ${placementRule(parsed.data.placement).name.toLowerCase()}`,
+    after: { placement: parsed.data.placement, ...target, isApproved: true },
   });
 
   revalidatePath('/portal/sponsorships');
   revalidatePath('/admin/business');
+  revalidatePath('/categories');
+  revalidatePath('/about/sponsors');
 
   return {
     status: 'success',
-    message: `Proposed. ${sponsor.name} appears nowhere public until an administrator approves it.`,
+    message: `Placed. ${sponsor.name} appears as soon as the matching feature is switched on for that season.`,
   };
 }
 

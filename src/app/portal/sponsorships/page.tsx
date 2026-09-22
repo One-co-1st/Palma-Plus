@@ -54,10 +54,9 @@ const PLACEMENT_ICONS: Record<string, typeof Crown> = {
 /**
  * The placement desk.
  *
- * The deal belongs to administration; the pages belong here. A moderator
- * proposes that a partner's name sits under a category heading, and an
- * administrator approves it — so no single person can put a logo on a public
- * page from end to end.
+ * The deal belongs to administration; the pages belong here. Placing a
+ * partner's name under a category heading takes effect the moment it is
+ * recorded, with the actor and the moment kept on the record.
  */
 export default async function SponsorshipsPage() {
   const session = await requirePermission('commercial:assign_placement', '/portal/sponsorships');
@@ -99,7 +98,7 @@ export default async function SponsorshipsPage() {
     sql<{ id: string; name: string }[]>`
       SELECT "id", "name"
       FROM "Sponsor"
-      WHERE "status" = 'active' AND "agreementStatus" = 'signed'
+      WHERE "status" = 'active'
       ORDER BY "name" ASC
     `,
     sql<{ id: string; title: string; year: number }[]>`
@@ -171,8 +170,8 @@ export default async function SponsorshipsPage() {
         <Info className="text-taupe mt-0.5 size-4 shrink-0" strokeWidth={1.5} />
         <p className="text-taupe-deep text-sm leading-relaxed">
           A placement buys the association and nothing else. It cannot touch nomination eligibility,
-          weighting, judging, assignment, scores or selection. You propose a placement here; an
-          administrator approves it, so no single person can put a logo on a public page alone.
+          weighting, judging, assignment, scores or selection. Placing a sponsor here takes effect
+          immediately; who placed it, and when, stays on the record.
         </p>
       </div>
 
@@ -236,7 +235,7 @@ export default async function SponsorshipsPage() {
           <EmptyState
             className="mt-6"
             title="Nothing waiting"
-            description="A placement proposed here appears nowhere public until an administrator approves it."
+            description="Every placement recorded so far is live."
           />
         ) : (
           <ul className="flex flex-col">

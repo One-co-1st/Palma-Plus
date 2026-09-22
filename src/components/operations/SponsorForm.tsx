@@ -12,10 +12,8 @@ const initial: CommercialState = { status: 'idle' };
 /**
  * A sponsor record.
  *
- * Almost everything here is internal. A sponsor becomes publicly visible only
- * when the relationship is active *and* the agreement is signed — a
- * conversation with a brand is not a partnership, and a logo on the site
- * before a signature is a claim PALMA cannot support.
+ * Almost everything here is internal. A sponsor becomes publicly visible the
+ * moment the relationship is marked active — that is the whole gate.
  */
 export function SponsorForm({ sponsors }: { sponsors: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState(saveSponsor, initial);
@@ -43,14 +41,9 @@ export function SponsorForm({ sponsors }: { sponsors: { id: string; name: string
         </Select>
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field htmlFor="name" label="Name shown publicly" required>
-          <Input id="name" name="name" required maxLength={120} />
-        </Field>
-        <Field htmlFor="legalName" label="Legal name" hint="Internal.">
-          <Input id="legalName" name="legalName" maxLength={160} />
-        </Field>
-      </div>
+      <Field htmlFor="name" label="Name shown publicly" required>
+        <Input id="name" name="name" required maxLength={120} />
+      </Field>
 
       <Field htmlFor="websiteUrl" label="Website">
         <Input id="websiteUrl" name="websiteUrl" type="url" placeholder="https://" />
@@ -64,31 +57,20 @@ export function SponsorForm({ sponsors }: { sponsors: { id: string; name: string
         <Textarea id="summary" name="summary" className="min-h-20" maxLength={600} />
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field
-          htmlFor="status"
-          label="Relationship"
-          required
-          hint="Only “active” with a signed agreement appears publicly."
-        >
-          <Select id="status" name="status" defaultValue="prospect">
-            <option value="prospect">Prospect</option>
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="expired">Expired</option>
-            <option value="terminated">Terminated</option>
-          </Select>
-        </Field>
-        <Field htmlFor="agreementStatus" label="Agreement" required>
-          <Select id="agreementStatus" name="agreementStatus" defaultValue="none">
-            <option value="none">None</option>
-            <option value="drafted">Drafted</option>
-            <option value="sent">Sent</option>
-            <option value="signed">Signed</option>
-            <option value="expired">Expired</option>
-          </Select>
-        </Field>
-      </div>
+      <Field
+        htmlFor="status"
+        label="Relationship"
+        required
+        hint="“Active” appears publicly. Everything else stays internal."
+      >
+        <Select id="status" name="status" defaultValue="prospect">
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="paused">Paused</option>
+          <option value="expired">Expired</option>
+          <option value="terminated">Terminated</option>
+        </Select>
+      </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field htmlFor="contactName" label="Contact" hint="Internal.">

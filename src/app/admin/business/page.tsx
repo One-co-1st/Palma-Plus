@@ -39,7 +39,6 @@ export default async function BusinessPage() {
         id: string;
         name: string;
         status: string;
-        agreementStatus: string;
         contactEmail: string | null;
         websiteUrl: string | null;
         sponsorshipCount: number;
@@ -49,7 +48,6 @@ export default async function BusinessPage() {
         s."id",
         s."name",
         s."status",
-        s."agreementStatus",
         s."contactEmail",
         s."websiteUrl",
         (
@@ -160,15 +158,14 @@ export default async function BusinessPage() {
       <section className="mt-14">
         <h2 className="palma-label text-taupe-deep mb-2">Sponsors</h2>
         <p className="text-taupe mb-6 max-w-160 text-xs leading-relaxed">
-          Contacts, agreement state and notes are PALMA&rsquo;s side of a business relationship and
-          are never rendered on a public page. A sponsor appears publicly only once the relationship
-          is active <em>and</em> the agreement is signed.
+          Contacts and notes are PALMA&rsquo;s side of a business relationship and are never
+          rendered on a public page. A sponsor appears publicly once the relationship is active.
         </p>
 
         {sponsors.length === 0 ? (
           <EmptyState
             title="No sponsors yet"
-            description="A sponsor recorded here is a conversation, not a commitment. Nothing becomes public until an agreement is signed."
+            description="A sponsor recorded here is a conversation, not a commitment. Nothing becomes public until the relationship is active."
           />
         ) : (
           <Table>
@@ -176,7 +173,6 @@ export default async function BusinessPage() {
               <tr>
                 <th scope="col">Sponsor</th>
                 <th scope="col">Status</th>
-                <th scope="col">Agreement</th>
                 <th scope="col">Associations</th>
                 <th scope="col">Contact</th>
               </tr>
@@ -188,11 +184,6 @@ export default async function BusinessPage() {
                   <td>
                     <Badge variant={sponsor.status === 'active' ? 'olive' : 'muted'}>
                       {titleCase(sponsor.status)}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Badge variant={sponsor.agreementStatus === 'signed' ? 'olive' : 'default'}>
-                      {titleCase(sponsor.agreementStatus)}
                     </Badge>
                   </td>
                   <td className="text-taupe-deep">{sponsor.sponsorshipCount}</td>

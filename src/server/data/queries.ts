@@ -949,6 +949,7 @@ type SponsorshipRow = {
   name: string;
   summary: string | null;
   websiteUrl: string | null;
+  logoUrl: string | null;
   isActive: boolean;
   categoryName: string | null;
 };
@@ -961,6 +962,7 @@ export const listSponsors = cache(async (): Promise<SponsorView[]> => {
       s."name",
       s."summary",
       s."websiteUrl",
+      s."logoUrl",
       s."isActive",
       cat."name" AS "categoryName"
     FROM "Sponsorship" sp
@@ -976,6 +978,7 @@ export const listSponsors = cache(async (): Promise<SponsorView[]> => {
       name: row.name,
       summary: row.summary,
       websiteUrl: row.websiteUrl,
+      logoUrl: row.logoUrl,
       tier: row.tier as SponsorView['tier'],
       categoryName: row.categoryName,
     }));

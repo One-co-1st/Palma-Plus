@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" width="240" height="40">
+  <rect x="3" y="3" width="34" height="34" fill="none" stroke="#c8b48a" stroke-width="2"/>
+  <text x="20" y="25.5" font-family="Georgia, serif" font-size="13" fill="#c8b48a" text-anchor="middle" letter-spacing="0.5">S&amp;C</text>
+  <text x="48" y="17.5" font-family="Georgia, serif" font-size="11.5" fill="#c8b48a" letter-spacing="2">SLICK</text>
+  <text x="48" y="31" font-family="Georgia, serif" font-size="8.5" fill="#a5987c" letter-spacing="3">&amp; CO.</text>
+</svg>

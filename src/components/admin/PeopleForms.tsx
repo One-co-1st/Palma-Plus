@@ -13,7 +13,9 @@ import {
   issueOperatorPasswordReset,
   proposeConsequentialAction,
   revokeSessions,
+  searchAccounts,
   setAccountState,
+  type AccountSearchHit,
   type PeopleState,
 } from '@/server/actions/people';
 
@@ -219,6 +221,33 @@ export function RevokeSessionsForm({ userId, count }: { userId: string; count: n
 /** Propose something irreversible. The proposer never executes it. */
 export function ProposeActionForm() {
   const [state, action, pending] = useActionState(proposeConsequentialAction, idle);
+  const [query, setQuery] = React.useState('');
+  const [hits, setHits] = React.useState<AccountSearchHit[]>([]);
+  const [searching, setSearching] = React.useState(false);
+  const [entityId, setEntityId] = React.useState('');
+  const [subject, setSubject] = React.useState('');
+
+  React.useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2) {
+      setHits([]);
+      setSearching(false);
+      return;
+    }
+    let cancelled = false;
+    setSearching(true);
+    const timer = setTimeout(() => {
+      void searchAccounts(term).then((found) => {
+        if (cancelled) return;
+        setHits(found);
+        setSearching(false);
+      });
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
 
   if (state.status === 'success') {
     return (
@@ -241,11 +270,53 @@ export function ProposeActionForm() {
       </div>
 
       <div className="flex flex-col gap-2">
+        <Label htmlFor="person-search">Find the person</Label>
+        <input
+          id="person-search"
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Start typing a name or an email"
+          autoComplete="off"
+          className="border-stone-deep bg-ivory-bright text-ink placeholder:text-taupe focus:border-olive h-11 w-full border px-3 text-sm focus:outline-none"
+        />
+        {query.trim().length >= 2 ? (
+          searching ? (
+            <p className="text-taupe text-xs">Searching…</p>
+          ) : hits.length > 0 ? (
+            <ul className="border-stone-deep divide-stone-deep/60 divide-y border">
+              {hits.map((hit) => (
+                <li key={hit.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEntityId(hit.id);
+                      setSubject(hit.label);
+                      setQuery('');
+                      setHits([]);
+                    }}
+                    className="hover:bg-stone/20 flex w-full flex-col gap-0.5 px-3 py-2.5 text-left"
+                  >
+                    <span className="text-ink text-sm">{hit.label}</span>
+                    <span className="text-taupe text-xs">{hit.detail}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-taupe text-xs">No account matches that.</p>
+          )
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
         <Label htmlFor="entityId">Record id</Label>
         <input
           id="entityId"
           name="entityId"
           required
+          value={entityId}
+          onChange={(event) => setEntityId(event.target.value)}
           className="border-stone-deep bg-ivory-bright text-ink focus:border-olive h-11 w-full border px-3 font-mono text-sm focus:outline-none"
         />
       </div>
@@ -256,6 +327,8 @@ export function ProposeActionForm() {
           id="subject"
           name="subject"
           required
+          value={subject}
+          onChange={(event) => setSubject(event.target.value)}
           placeholder="e.g. maya@example.com, or PALMA 2027 Winner, Best New Creator"
           className="border-stone-deep bg-ivory-bright text-ink placeholder:text-taupe focus:border-olive h-11 w-full border px-3 text-sm focus:outline-none"
         />
