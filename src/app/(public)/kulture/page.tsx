@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Container, Section } from '@/components/palma/layout';
 import { Masthead } from '@/components/palma/Masthead';
-import { Reveal, RevealGroup, RevealItem } from '@/components/motion/primitives';
+import { RevealGroup, RevealItem } from '@/components/motion/primitives';
 import { buildMetadata } from '@/lib/seo';
 import { featureLive } from '@/server/features';
 import { listArticles } from '@/server/data/queries';
@@ -35,34 +35,28 @@ export default async function KulturePage() {
         eyebrow="The editorial pillar"
         title="Kulture"
         titleLines={['Kulture']}
-        standfirst="The people, aesthetics, ideas, products and moments shaping UK adult creator culture."
+        standfirst="PALMA recognises work. Kulture is where it writes about it."
         meta={['Writing', 'Creator features', 'The Product Library']}
       />
 
-      <Section className="py-16 sm:py-20">
+      <Section className="py-14 sm:py-16">
         <Container>
-          <Reveal>
-            <p className="font-display max-w-200 text-2xl leading-snug sm:text-3xl">
-              PALMA recognises work. Kulture is where it writes about it.
-            </p>
-          </Reveal>
-
-          <RevealGroup className="mt-14 grid gap-px sm:grid-cols-2 lg:grid-cols-3">
-            <Pillar
+          <RevealGroup className="border-stone-deep flex flex-col border-t">
+            <Row
               href="/journal"
               label="The Journal"
               body="Stories, interviews and argument about the industry PALMA recognises."
             />
-            <Pillar
+            <Row
               href="/creators"
               label="Creator records"
               body="The people, their honours, and where the work lives."
             />
             {productsLive ? (
-              <Pillar
+              <Row
                 href="/kulture/products"
                 label="The Product Library"
-                body="A short, curated list of things creators actually use, each with a PALMA verdict and what it is not good for."
+                body="Things creators actually use, each with a short PALMA verdict."
               />
             ) : null}
           </RevealGroup>
@@ -101,15 +95,15 @@ export default async function KulturePage() {
   );
 }
 
-function Pillar({ href, label, body }: { href: string; label: string; body: string }) {
+function Row({ href, label, body }: { href: string; label: string; body: string }) {
   return (
     <RevealItem>
       <Link
         href={href}
-        className="palma-card-surface group/card border-stone-deep flex h-full flex-col gap-3 border p-8"
+        className="palma-row group/card border-stone-deep grid gap-1 border-b py-5 sm:grid-cols-12 sm:items-baseline sm:gap-8"
       >
-        <span className="font-display text-2xl leading-tight">{label}</span>
-        <span className="text-taupe-deep text-sm leading-relaxed">{body}</span>
+        <span className="font-display text-xl leading-tight sm:col-span-4">{label}</span>
+        <span className="text-taupe-deep text-sm leading-relaxed sm:col-span-8">{body}</span>
       </Link>
     </RevealItem>
   );

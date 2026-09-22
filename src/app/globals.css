@@ -120,6 +120,43 @@
   }
 }
 
+/*
+ * The partner belt: one continuous slide, half the track wide, so the
+ * duplicated set loops without a seam. Pauses under the cursor; stands
+ * still entirely for readers who ask for reduced motion.
+ */
+@keyframes palma-belt {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.palma-belt {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.palma-belt-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  animation: palma-belt 36s linear infinite;
+}
+
+.palma-belt:hover .palma-belt-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palma-belt-track {
+    animation: none;
+  }
+}
+
 /* The crown is struck, not faded: it arrives slightly oversized and settles. */
 @keyframes palma-strike {
   from {

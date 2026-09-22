@@ -20,14 +20,14 @@ export const transition = {
 
 /** Content arriving in the viewport: up and in, never sideways. */
 export const rise: Variants = {
-  hidden: { opacity: 0, y: TRAVEL.rise },
-  visible: { opacity: 1, y: 0, transition: transition.slow },
+  hidden: { opacity: 0, y: TRAVEL.rise, pointerEvents: 'none' },
+  visible: { opacity: 1, y: 0, pointerEvents: 'auto', transition: transition.slow },
 };
 
 /** For section headings and display type — a touch further, a touch slower. */
 export const enter: Variants = {
-  hidden: { opacity: 0, y: TRAVEL.enter },
-  visible: { opacity: 1, y: 0, transition: transition.ceremonial },
+  hidden: { opacity: 0, y: TRAVEL.enter, pointerEvents: 'none' },
+  visible: { opacity: 1, y: 0, pointerEvents: 'auto', transition: transition.ceremonial },
 };
 
 /**
@@ -41,8 +41,8 @@ export const unmask: Variants = {
 
 /** Fade only. For anything where movement would be noise. */
 export const fade: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: transition.base },
+  hidden: { opacity: 0, pointerEvents: 'none' },
+  visible: { opacity: 1, pointerEvents: 'auto', transition: transition.base },
 };
 
 /** Parent for staggered groups. Children use `rise` or `unmask`. */

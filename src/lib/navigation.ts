@@ -89,6 +89,7 @@ export const FOOTER_NAV: { title: string; branches: FooterBranch[] }[] = [
         items: [
           { href: '/kulture', label: 'Kulture' },
           { href: '/journal', label: 'The Journal' },
+          { href: '/kulture/products', label: 'The Product Library' },
         ],
       },
       {
@@ -101,7 +102,7 @@ export const FOOTER_NAV: { title: string; branches: FooterBranch[] }[] = [
       {
         title: 'Enquiries',
         items: [
-          { href: '/about/sponsors', label: 'Partners' },
+          { href: '/about/sponsors', label: 'Sponsors & partners' },
           { href: '/press', label: 'Press' },
           { href: '/contact', label: 'Contact' },
         ],
