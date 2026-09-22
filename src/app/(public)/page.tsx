@@ -7,6 +7,7 @@ import { Reveal } from '@/components/palma/Reveal';
 import { CreatorCard } from '@/components/palma/CreatorCard';
 import { SeasonChoreography } from '@/components/motion/SeasonChoreography';
 import { PalmMark } from '@/components/brand/PalmMark';
+import { SponsorBelt } from '@/components/palma/SponsorBelt';
 import { HONOUR_LABEL } from '@/components/palma/badges';
 import { formatDate } from '@/lib/format';
 import { acceptsNominations, STAGE_LABEL } from '@/domain/season';
@@ -17,6 +18,7 @@ import {
   listCategories,
   listCreators,
   listRecentHonours,
+  listSponsors,
 } from '@/server/data/queries';
 import { ordinal } from '@/lib/utils';
 
@@ -24,12 +26,13 @@ export const revalidate = 900;
 
 export default async function HomePage() {
   const season = await getCurrentSeason();
-  const [creators, honours, roll, articles, categories] = await Promise.all([
+  const [creators, honours, roll, articles, categories, sponsors] = await Promise.all([
     listCreators({ honoursOnly: true, limit: 3 }),
     listRecentHonours(6),
     getRollOfHonour(),
     listArticles({ limit: 3 }),
     listCategories(season.year),
+    listSponsors(),
   ]);
 
   const open = acceptsNominations(season.stage);
@@ -124,6 +127,12 @@ export default async function HomePage() {
           </Reveal>
         </Container>
       </section>
+
+      {/* ── Partners ───────────────────────────────────────────────────── */}
+      {/* The partners ride between the hero and the season: the first thing
+          seen after the mark itself, because their names keep the season
+          standing and the homepage should say so. */}
+      <SponsorBelt sponsors={sponsors} />
 
       {/* ── Current season ───────────────────────────────────────────────── */}
       <Section tone="ink" className="border-ivory/12 border-t pt-0! pb-24 sm:pb-28">
