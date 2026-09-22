@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   acceptsNominations,
+  calendarStage,
   canAdvance,
+  effectiveStage,
   finalistsArePublic,
   phaseIndex,
   phaseState,
@@ -43,5 +45,63 @@ describe('season stages', () => {
     expect(phaseState('judging', 0)).toBe('complete');
     // An archived season has no current step — everything is done.
     expect(phaseState('archived', 3)).toBe('complete');
+  });
+});
+
+describe('calendar-derived stage', () => {
+  // The PALMA 2027 dates, as the season row carries them.
+  const dates = {
+    nominationsOpenAt: '2027-04-01T00:00:00.000Z',
+    nominationsCloseAt: '2027-04-30T00:00:00.000Z',
+    shortlistAt: '2027-05-06T00:00:00.000Z',
+    finalistsAt: '2027-06-01T00:00:00.000Z',
+    ceremonyAt: '2027-07-01T00:00:00.000Z',
+  };
+  const on = (iso: string) => new Date(iso);
+
+  it('walks the season as its dates pass', () => {
+    expect(calendarStage(dates, on('2027-03-31T23:59:59.000Z'))).toBe('announced');
+    expect(calendarStage(dates, on('2027-04-01T00:00:00.000Z'))).toBe('nominations_open');
+    expect(calendarStage(dates, on('2027-04-29T12:00:00.000Z'))).toBe('nominations_open');
+    expect(calendarStage(dates, on('2027-04-30T00:00:00.000Z'))).toBe('shortlisting');
+    expect(calendarStage(dates, on('2027-05-06T00:00:00.000Z'))).toBe('judging');
+    expect(calendarStage(dates, on('2027-06-01T00:00:00.000Z'))).toBe('finalists_announced');
+    expect(calendarStage(dates, on('2027-07-01T00:00:00.000Z'))).toBe('winners_announced');
+  });
+
+  it('cannot rule without an opening date', () => {
+    expect(calendarStage({ nominationsOpenAt: null }, on('2027-04-15T00:00:00.000Z'))).toBeNull();
+  });
+
+  it('rules over a stage set by hand, in both directions', () => {
+    // The off-season complaint: stored says open, the calendar says the
+    // season has not started.
+    expect(effectiveStage('nominations_open', dates, on('2026-09-22T12:00:00.000Z'))).toBe(
+      'announced',
+    );
+    // And a stored stage left behind once the dates have moved on.
+    expect(effectiveStage('nominations_open', dates, on('2027-05-10T12:00:00.000Z'))).toBe(
+      'judging',
+    );
+  });
+
+  it('never unseals an archived season', () => {
+    // Archived is a seal, not a stage: only an administrator archives, and
+    // the calendar may not undo it.
+    expect(effectiveStage('archived', dates, on('2026-09-22T12:00:00.000Z'))).toBe('archived');
+    expect(effectiveStage('archived', dates, on('2027-04-15T12:00:00.000Z'))).toBe('archived');
+  });
+
+  it('falls back to the stored stage when the dates cannot rule', () => {
+    expect(
+      effectiveStage('nominations_closed', { nominationsOpenAt: null }, on('2027-04-15T00:00:00.000Z')),
+    ).toBe('nominations_closed');
+  });
+
+  it('accepts nominations exactly inside the window the dates set', () => {
+    const stageAt = (iso: string) => effectiveStage('announced', dates, on(iso));
+    expect(acceptsNominations(stageAt('2027-03-31T12:00:00.000Z'))).toBe(false);
+    expect(acceptsNominations(stageAt('2027-04-15T12:00:00.000Z'))).toBe(true);
+    expect(acceptsNominations(stageAt('2027-05-01T12:00:00.000Z'))).toBe(false);
   });
 });

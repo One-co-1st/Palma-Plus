@@ -120,8 +120,12 @@ export default async function ReferralNominatePage({ params }: Params) {
         <Container>
           {!open ? (
             <EmptyState
-              title="Nominations are closed"
-              description={`Nominations for ${season.title} are not open. Finalists are announced on ${formatDate(season.finalistsAt)}.`}
+              title={season.stage === 'announced' ? 'Nominations have not opened' : 'Nominations are closed'}
+              description={
+                season.stage === 'announced'
+                  ? `Nominations for ${season.title} open on ${formatDate(season.nominationsOpenAt)}.`
+                  : `Nominations for ${season.title} are not open. Finalists are announced on ${formatDate(season.finalistsAt)}.`
+              }
               action={
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/creators/${creator.slug}`}>View the PALMA record</Link>

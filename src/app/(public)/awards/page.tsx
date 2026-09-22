@@ -27,6 +27,12 @@ export default async function AwardsPage() {
   const open = acceptsNominations(season.stage);
   const past = seasons.filter((entry) => entry.year !== season.year);
 
+  // The key dates answer to the same clock the stage does: a date that has
+  // passed is past, the open window is current, everything else is to come.
+  const now = Date.now();
+  const passed = (iso: string | null) => (iso ? new Date(iso).getTime() <= now : false);
+  const dateState = (iso: string | null): 'past' | 'future' => (passed(iso) ? 'past' : 'future');
+
   return (
     <>
       <Masthead
@@ -37,7 +43,9 @@ export default async function AwardsPage() {
         standfirst={season.summary ?? undefined}
         meta={[
           STAGE_LABEL[season.stage],
-          `${categories.length} categories`,
+          // Twelve category PALMAs plus THE PALMA above them: the season
+          // confers thirteen honours, and the masthead says so.
+          `${categories.length + 1} honours`,
           `Ceremony ${formatDate(season.ceremonyAt)}`,
         ]}
         actions={
@@ -78,24 +86,28 @@ export default async function AwardsPage() {
                   {
                     label: 'Nominations open',
                     date: season.nominationsOpenAt,
-                    state: 'past',
+                    state: dateState(season.nominationsOpenAt),
                     description: 'Creators may nominate themselves, or be nominated by anyone.',
                   },
                   {
                     label: 'Nominations close',
                     date: season.nominationsCloseAt,
-                    state: open ? 'current' : 'past',
+                    state: open ? 'current' : dateState(season.nominationsCloseAt),
                   },
                   {
                     label: 'Shortlist announced',
                     date: season.shortlistAt,
-                    state: 'future',
+                    state: dateState(season.shortlistAt),
                   },
-                  { label: 'Finalists announced', date: season.finalistsAt, state: 'future' },
+                  {
+                    label: 'Finalists announced',
+                    date: season.finalistsAt,
+                    state: dateState(season.finalistsAt),
+                  },
                   {
                     label: 'Winners announced',
                     date: season.ceremonyAt,
-                    state: 'future',
+                    state: dateState(season.ceremonyAt),
                     description: 'Honours are entered into the PALMA Roll of Honour.',
                   },
                 ]}

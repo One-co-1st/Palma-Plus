@@ -67,7 +67,8 @@ export default async function SeasonPage({ params }: Params) {
         standfirst={season.summary ?? undefined}
         meta={[
           STAGE_LABEL[season.stage],
-          `${categories.length} categories`,
+          // Twelve category PALMAs plus THE PALMA: thirteen honours a season.
+          `${categories.length + 1} honours`,
           `Ceremony ${formatDate(season.ceremonyAt)}`,
         ]}
         plate={

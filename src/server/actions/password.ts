@@ -38,8 +38,7 @@ export type PasswordState = {
   signInPath?: string;
 };
 
-const SAME_ANSWER =
-  'If that address has a PALMA account, a reset link is on its way. It is valid for one hour.';
+const SAME_ANSWER = 'If that address has a PALMA account, a reset link is on its way.';
 
 /**
  * Mint a fresh, single-use link that lets whoever holds it set a password —

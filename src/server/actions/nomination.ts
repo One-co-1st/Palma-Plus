@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { acceptsNominations, type SeasonStage } from '@/domain/season';
+import { acceptsNominations, effectiveStage, type SeasonStage } from '@/domain/season';
 import { assessIntegrity } from '@/domain/integrity';
 import { checkNomination, nominatorKey } from '@/domain/nomination';
 import {
@@ -130,12 +130,22 @@ export async function requestNominationCode(
       id: string;
       year: number;
       stage: string;
+      nominationsOpenAt: string | null;
+      nominationsCloseAt: string | null;
+      shortlistAt: string | null;
+      finalistsAt: string | null;
+      ceremonyAt: string | null;
       categoryId: string | null;
       categoryName: string | null;
       categoryIsOpen: boolean | null;
     }[]
   >`
     select ay.id, ay.year, ay.stage,
+           ${isoTs('ay."nominationsOpenAt"')} as "nominationsOpenAt",
+           ${isoTs('ay."nominationsCloseAt"')} as "nominationsCloseAt",
+           ${isoTs('ay."shortlistAt"')} as "shortlistAt",
+           ${isoTs('ay."finalistsAt"')} as "finalistsAt",
+           ${isoTs('ay."ceremonyAt"')} as "ceremonyAt",
            cat.id as "categoryId", cat.name as "categoryName", cat."isOpen" as "categoryIsOpen"
     from "AwardYear" ay
     left join "Category" cat on cat."awardYearId" = ay.id and cat.slug = ${input.categorySlug}
@@ -144,7 +154,11 @@ export async function requestNominationCode(
   `;
 
   const season = seasonRow
-    ? { id: seasonRow.id, year: seasonRow.year, stage: seasonRow.stage }
+    ? {
+        id: seasonRow.id,
+        year: seasonRow.year,
+        stage: effectiveStage(seasonRow.stage as SeasonStage, seasonRow),
+      }
     : null;
   const category = seasonRow?.categoryId
     ? { id: seasonRow.categoryId, name: seasonRow.categoryName!, isOpen: seasonRow.categoryIsOpen! }
@@ -503,6 +517,11 @@ export async function submitNomination(
       creatorName: string;
       categoryName: string;
       seasonStage: string;
+      nominationsOpenAt: string | null;
+      nominationsCloseAt: string | null;
+      shortlistAt: string | null;
+      finalistsAt: string | null;
+      ceremonyAt: string | null;
     }[]
   >`
     select
@@ -512,7 +531,12 @@ export async function submitNomination(
       ${isoTs('n."verifiedAt"')} as "verifiedAt",
       cr."displayName" as "creatorName",
       cat.name as "categoryName",
-      ay.stage as "seasonStage"
+      ay.stage as "seasonStage",
+      ${isoTs('ay."nominationsOpenAt"')} as "nominationsOpenAt",
+      ${isoTs('ay."nominationsCloseAt"')} as "nominationsCloseAt",
+      ${isoTs('ay."shortlistAt"')} as "shortlistAt",
+      ${isoTs('ay."finalistsAt"')} as "finalistsAt",
+      ${isoTs('ay."ceremonyAt"')} as "ceremonyAt"
     from "Nomination" n
     join "Candidacy" c on c.id = n."candidacyId"
     join "Creator" cr on cr.id = c."creatorId"
@@ -553,8 +577,9 @@ export async function submitNomination(
     };
   }
 
-  // The season can close between requesting a code and submitting.
-  if (!acceptsNominations(nomination.seasonStage as SeasonStage)) {
+  // The season can close between requesting a code and submitting — and the
+  // calendar, not just the stored stage, decides whether it has.
+  if (!acceptsNominations(effectiveStage(nomination.seasonStage as SeasonStage, nomination))) {
     return {
       ...previous,
       status: 'error',

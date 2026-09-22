@@ -28,7 +28,7 @@ export default async function ForgotPasswordPage() {
             <h1 className="text-4xl">Forgotten your password</h1>
             <p className="text-taupe-deep leading-relaxed">
               Give us the address on your creator account and we will send a link that sets a new
-              password. It is valid for one hour and works once.
+              password.
             </p>
           </Reveal>
 
@@ -47,11 +47,6 @@ export default async function ForgotPasswordPage() {
                 {CONTACTS.security}
               </a>{' '}
               from wherever you can, a person will read it.
-            </p>
-            <p className="mt-4">
-              The link lands on whatever desk your account belongs to — creator, judge, moderator
-              or administrator. Once signed in, everyone can also change their password from their
-              own account settings.
             </p>
           </Reveal>
         </div>

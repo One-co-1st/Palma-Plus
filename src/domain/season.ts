@@ -71,6 +71,82 @@ export function canAdvance(from: SeasonStage, to: SeasonStage): boolean {
   return b === a + 1;
 }
 
+/**
+ * The season's own dates, as stored on its row. Any of them may be missing;
+ * the resolver below only rules on what it can see.
+ */
+export type SeasonCalendar = {
+  nominationsOpenAt: Date | string | null;
+  nominationsCloseAt?: Date | string | null;
+  shortlistAt?: Date | string | null;
+  finalistsAt?: Date | string | null;
+  ceremonyAt?: Date | string | null;
+};
+
+function time(value: Date | string | null | undefined): number | null {
+  if (!value) return null;
+  const ms = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * The stage the PALMA calendar says the season is in, right now.
+ *
+ * The season's dates are the law the public site answers to: April opens
+ * nominations, the close date ends them, each announcement date turns its
+ * page. A stored stage that drifts from those dates — set by hand, then left
+ * behind — is how the site ends up saying "Open for nominations" in the
+ * off-season. This derives the stage from the calendar instead, and returns
+ * null when the row does not carry enough dates to rule, so the caller can
+ * fall back to what is stored.
+ */
+export function calendarStage(calendar: SeasonCalendar, now: Date = new Date()): SeasonStage | null {
+  const open = time(calendar.nominationsOpenAt);
+  if (open === null) return null;
+  const close = time(calendar.nominationsCloseAt);
+  const shortlist = time(calendar.shortlistAt);
+  const finalists = time(calendar.finalistsAt);
+  const ceremony = time(calendar.ceremonyAt);
+  const t = now.getTime();
+
+  if (t < open) return 'announced';
+  if (close === null) return null;
+  if (t < close) return 'nominations_open';
+  if (shortlist === null) return 'shortlisting';
+  if (t < shortlist) return 'shortlisting';
+  if (finalists === null) return 'judging';
+  if (t < finalists) return 'judging';
+  if (ceremony === null) return 'finalists_announced';
+  if (t < ceremony) return 'finalists_announced';
+  return 'winners_announced';
+}
+
+/**
+ * The stage the public record shows. The calendar rules.
+ *
+ * A season's own dates decide what stage it is in: April opens nominations,
+ * the close date ends them, each announcement date turns its page. The stored
+ * stage is the fallback for a season whose row does not carry enough dates to
+ * rule — nothing more. This is what stops the site saying "Open for
+ * nominations" in the off-season because somebody set a stage by hand and
+ * never came back to it. If the institution moves a season, it moves the
+ * dates, and every surface follows: the rail, the category cards, the
+ * nomination form and the acceptance path all read through this one
+ * resolver, so they cannot disagree with each other.
+ *
+ * One exception: `archived` is a seal, not a stage. Only an administrator
+ * archives a season, and the calendar may not unseal it — a sealed season
+ * reads as archived whatever its dates say.
+ */
+export function effectiveStage(
+  stored: SeasonStage,
+  calendar: SeasonCalendar,
+  now: Date = new Date(),
+): SeasonStage {
+  if (stored === 'archived') return stored;
+  return calendarStage(calendar, now) ?? stored;
+}
+
 export function acceptsNominations(stage: SeasonStage): boolean {
   return stage === 'nominations_open';
 }

@@ -5,7 +5,7 @@ import { NominateForm } from '@/components/nominate/NominateForm';
 import { EmptyState, Notice } from '@/components/ui/feedback';
 import { Button } from '@/components/ui/button';
 import { buildMetadata } from '@/lib/seo';
-import { acceptsNominations } from '@/domain/season';
+import { acceptsNominations, STAGE_LABEL } from '@/domain/season';
 import { formatDate } from '@/lib/format';
 import { getCurrentSeason, listCategories } from '@/server/data/queries';
 
@@ -35,9 +35,11 @@ export default async function NominatePage() {
           'Under a minute',
           'No account',
           'No evidence needed',
-          season.nominationsCloseAt
+          open && season.nominationsCloseAt
             ? `Closes ${formatDate(season.nominationsCloseAt)}`
-            : 'Open now',
+            : season.stage === 'announced' && season.nominationsOpenAt
+              ? `Opens ${formatDate(season.nominationsOpenAt)}`
+              : STAGE_LABEL[season.stage],
         ]}
         plate={
           <MastheadPlate label="Audience nominates. PALMA judges.">
@@ -101,8 +103,12 @@ export default async function NominatePage() {
             </div>
           ) : (
             <EmptyState
-              title="Nominations are closed"
-              description={`Nominations for ${season.title} are not open. Finalists are announced on ${formatDate(season.finalistsAt)}.`}
+              title={season.stage === 'announced' ? 'Nominations have not opened' : 'Nominations are closed'}
+              description={
+                season.stage === 'announced'
+                  ? `Nominations for ${season.title} open on ${formatDate(season.nominationsOpenAt)}.`
+                  : `Nominations for ${season.title} are not open. Finalists are announced on ${formatDate(season.finalistsAt)}.`
+              }
               action={
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/awards/${season.year}`}>Follow the season</Link>

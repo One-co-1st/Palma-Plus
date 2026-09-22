@@ -70,7 +70,7 @@ export default async function HomePage() {
             </div>
 
             <p className="font-display text-ivory/85 max-w-150 text-2xl leading-[1.25] sm:text-4xl">
-              Recognising the people shaping creator culture.
+              Recognising the people shaping adult creator culture.
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -141,9 +141,13 @@ export default async function HomePage() {
                 <Badge variant={open ? 'champagneDark' : 'outlineIvory'}>
                   {open ? 'Nominations open' : STAGE_LABEL[season.stage]}
                 </Badge>
-                {season.nominationsCloseAt ? (
+                {open && season.nominationsCloseAt ? (
                   <span className="palma-label text-ivory/45">
                     Closes {formatDate(season.nominationsCloseAt)}
+                  </span>
+                ) : season.stage === 'announced' && season.nominationsOpenAt ? (
+                  <span className="palma-label text-ivory/45">
+                    Opens {formatDate(season.nominationsOpenAt)}
                   </span>
                 ) : null}
               </div>

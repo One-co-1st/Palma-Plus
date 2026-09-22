@@ -1,9 +1,12 @@
 import 'server-only';
 
-import { acceptsNominations, type SeasonStage } from '@/domain/season';
+import { acceptsNominations, effectiveStage, type SeasonStage } from '@/domain/season';
 import { recordAudit, type AuditActor } from '@/server/audit';
 import { sql, withTransaction } from '@/server/db/sql';
 import { sendNominationReceipt } from '@/server/email/messages';
+
+/** Render a timestamp column as ISO-8601 text, matching the app's other reads. */
+const isoTs = (ref: string) => sql.unsafe(`to_char(${ref}, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`);
 
 export type CountVerifiedNominationResult =
   | {
@@ -32,6 +35,11 @@ type NominationRow = {
   categoryName: string;
   seasonStage: string;
   seasonYear: number;
+  nominationsOpenAt: string | null;
+  nominationsCloseAt: string | null;
+  shortlistAt: string | null;
+  finalistsAt: string | null;
+  ceremonyAt: string | null;
 };
 
 /**
@@ -63,7 +71,12 @@ export async function countVerifiedNomination(
       cr."displayName" as "creatorName",
       cat.name as "categoryName",
       ay.stage as "seasonStage",
-      ay.year as "seasonYear"
+      ay.year as "seasonYear",
+      ${isoTs('ay."nominationsOpenAt"')} as "nominationsOpenAt",
+      ${isoTs('ay."nominationsCloseAt"')} as "nominationsCloseAt",
+      ${isoTs('ay."shortlistAt"')} as "shortlistAt",
+      ${isoTs('ay."finalistsAt"')} as "finalistsAt",
+      ${isoTs('ay."ceremonyAt"')} as "ceremonyAt"
     from "Nomination" n
     join "Nominator" nom on nom.id = n."nominatorId"
     join "Candidacy" c on c.id = n."candidacyId"
@@ -93,7 +106,7 @@ export async function countVerifiedNomination(
     return { ok: false, message: 'Verify your email address before submitting.' };
   }
 
-  if (!acceptsNominations(nomination.seasonStage as SeasonStage)) {
+  if (!acceptsNominations(effectiveStage(nomination.seasonStage as SeasonStage, nomination))) {
     return {
       ok: false,
       message: 'Nominations closed while you were verifying. Nothing has been recorded.',

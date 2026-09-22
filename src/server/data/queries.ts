@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { unstable_cache } from 'next/cache';
 import { sql } from '@/server/db/sql';
 import type { SeasonStage } from '@/domain/season';
-import { acceptsNominations, finalistsArePublic, winnersArePublic } from '@/domain/season';
+import { acceptsNominations, effectiveStage, finalistsArePublic, winnersArePublic } from '@/domain/season';
 import {
   honourCategoryName,
   honourCategorySlug,
@@ -112,7 +112,9 @@ export const listSeasons = publicData('seasons', async (): Promise<SeasonView[]>
     id: row.id,
     year: row.year,
     title: row.title,
-    stage: row.stage as SeasonStage,
+    // The stage the public sees answers to the season's own dates, not to
+    // whenever someone last touched the admin panel. See effectiveStage.
+    stage: effectiveStage(row.stage as SeasonStage, row),
     tagline: row.tagline,
     summary: row.summary,
     nominationsOpenAt: iso(row.nominationsOpenAt),
@@ -149,6 +151,11 @@ type CategoryRow = {
   position: number;
   year: number;
   stage: string;
+  nominationsOpenAt: string | null;
+  nominationsCloseAt: string | null;
+  shortlistAt: string | null;
+  finalistsAt: string | null;
+  ceremonyAt: string | null;
   partner: { name: string; slug: string } | null;
 };
 
@@ -166,6 +173,11 @@ export const listCategories = publicData('categories', async (year: number): Pro
       c."position",
       ay."year",
       ay."stage",
+      ${isoTs('ay."nominationsOpenAt"')} AS "nominationsOpenAt",
+      ${isoTs('ay."nominationsCloseAt"')} AS "nominationsCloseAt",
+      ${isoTs('ay."shortlistAt"')} AS "shortlistAt",
+      ${isoTs('ay."finalistsAt"')} AS "finalistsAt",
+      ${isoTs('ay."ceremonyAt"')} AS "ceremonyAt",
       -- Only an approved association, with a live sponsor, and only a category
       -- placement. An unapproved sponsorship is a conversation, and a logo on
       -- the strength of one is a claim PALMA cannot support.
@@ -186,22 +198,27 @@ export const listCategories = publicData('categories', async (year: number): Pro
     ORDER BY c."position" ASC
   `;
 
-  return rows.map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    strapline: row.strapline,
-    description: row.description,
-    eligibility: row.eligibility,
-    judgingCriteria: row.judgingCriteria,
-    // A category is only open while the season itself is accepting nominations;
-    // the category flag alone must never outrank the season stage.
-    isOpen: row.isOpen && acceptsNominations(row.stage as SeasonStage),
-    position: row.position,
-    year: row.year,
-    stage: row.stage as SeasonStage,
-    partner: row.partner ? { name: row.partner.name, slug: row.partner.slug } : null,
-  }));
+  return rows.map((row) => {
+    // A category is only open while the season itself is accepting
+    // nominations; the category flag alone must never outrank the season
+    // stage — and the season stage answers to the calendar, so the cards can
+    // never say "Open for nominations" outside the window the dates set.
+    const stage = effectiveStage(row.stage as SeasonStage, row);
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      strapline: row.strapline,
+      description: row.description,
+      eligibility: row.eligibility,
+      judgingCriteria: row.judgingCriteria,
+      isOpen: row.isOpen && acceptsNominations(stage),
+      position: row.position,
+      year: row.year,
+      stage,
+      partner: row.partner ? { name: row.partner.name, slug: row.partner.slug } : null,
+    };
+  });
 });
 
 export const getCategory = cache(
@@ -348,6 +365,11 @@ type CreatorHonourJson = {
   categorySlug: string | null;
   year: number;
   stage: string;
+  nominationsOpenAt: string | null;
+  nominationsCloseAt: string | null;
+  shortlistAt: string | null;
+  finalistsAt: string | null;
+  ceremonyAt: string | null;
   code: string | null;
 };
 
@@ -409,6 +431,11 @@ export const getCreator = publicData('creator', async (slug: string): Promise<Cr
               'categorySlug', cat."slug",
               'year', ay."year",
               'stage', ay."stage",
+              'nominationsOpenAt', ${isoTs('ay."nominationsOpenAt"')},
+              'nominationsCloseAt', ${isoTs('ay."nominationsCloseAt"')},
+              'shortlistAt', ${isoTs('ay."shortlistAt"')},
+              'finalistsAt', ${isoTs('ay."finalistsAt"')},
+              'ceremonyAt', ${isoTs('ay."ceremonyAt"')},
               'code', ach."code"
             )
             ORDER BY h."createdAt" DESC
@@ -432,7 +459,8 @@ export const getCreator = publicData('creator', async (slug: string): Promise<Cr
   const record: HonourEntry[] = row.honours
     .filter(
       (honour) =>
-        winnersArePublic(honour.stage as SeasonStage) || honour.kind !== 'winner',
+        winnersArePublic(effectiveStage(honour.stage as SeasonStage, honour)) ||
+        honour.kind !== 'winner',
     )
     .map((honour) => ({
       id: honour.id,
@@ -494,6 +522,11 @@ type HonourQueryRow = {
   announcedAt: string | null;
   year: number;
   stage: string;
+  nominationsOpenAt: string | null;
+  nominationsCloseAt: string | null;
+  shortlistAt: string | null;
+  finalistsAt: string | null;
+  ceremonyAt: string | null;
   categoryName: string | null;
   categorySlug: string | null;
   creatorSlug: string;
@@ -509,6 +542,11 @@ const honourRows = cache(async (year?: number, kind?: HonourEntry['kind']): Prom
       ${isoTs('h."announcedAt"')} AS "announcedAt",
       ay."year",
       ay."stage",
+      ${isoTs('ay."nominationsOpenAt"')} AS "nominationsOpenAt",
+      ${isoTs('ay."nominationsCloseAt"')} AS "nominationsCloseAt",
+      ${isoTs('ay."shortlistAt"')} AS "shortlistAt",
+      ${isoTs('ay."finalistsAt"')} AS "finalistsAt",
+      ${isoTs('ay."ceremonyAt"')} AS "ceremonyAt",
       cat."name" AS "categoryName",
       cat."slug" AS "categorySlug",
       cr."slug" AS "creatorSlug",
@@ -525,11 +563,13 @@ const honourRows = cache(async (year?: number, kind?: HonourEntry['kind']): Prom
   `;
 
   return rows
-    .filter((row) =>
-      row.kind === 'winner'
-        ? winnersArePublic(row.stage as SeasonStage)
-        : finalistsArePublic(row.stage as SeasonStage),
-    )
+    .filter((row) => {
+      // Visibility answers to the calendar too: a winner entered on ceremony
+      // night is public when the ceremony date arrives, not whenever the
+      // stored stage is next advanced.
+      const stage = effectiveStage(row.stage as SeasonStage, row);
+      return row.kind === 'winner' ? winnersArePublic(stage) : finalistsArePublic(stage);
+    })
     .map((row) => ({
       kind: row.kind as HonourEntry['kind'],
       year: row.year,
