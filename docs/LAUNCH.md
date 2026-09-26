@@ -20,7 +20,7 @@ Verified by running it, not by reading it.
 | Tests                   | 288 unit, 7 integration, all passing                                                                                   |
 | Build                   | Clean production build                                                                                                 |
 | Lint, types, formatting | Clean                                                                                                                  |
-| Migrations              | Baselined at `0_init`; `npm run db:deploy` is the production path                                                      |
+| Migrations              | SQL ledger in `supabase/migrations`; `npm run db:migrate` is the production path                                       |
 | The four surfaces       | `/creator`, `/judge`, `/portal`, `/admin` — door and dashboard at one path each                                        |
 | The award engine        | Nomination → verification → screening → assignment → scoring → selection → conferral → verification record, end to end |
 | Two-administrator rule  | Proven: a proposer cannot approve their own consequential action                                                       |
@@ -81,7 +81,7 @@ Both routes fail closed, so the failure is silent rather than loud.
 ### 6. Operator accounts
 
 The seeded cast exists with a shared password from a config file. **Never run
-`npm run db:seed` against production** — besides the password, it reconciles the
+a seed or fixture against production** — besides the password, it reconciles the
 cast by deleting palmaawards.com accounts that are not in it.
 
 Create production operators by hand, each with their own password.
@@ -153,7 +153,7 @@ Not blocking, and each is a decision rather than an oversight.
 | **Two-factor authentication** | Not offered, by your decision. `/account` says so plainly rather than showing a switch that does nothing. Worth revisiting before accounts exist that can revoke an honour. |
 | **Portrait storage**          | Portraits are re-encoded WebP in Postgres. Correct at a few hundred creators; move to object storage above a few thousand. One file.                                        |
 | **No staging environment**    | Everything here was verified against a local production build. A staging deployment against the real database shape is worth having before the season opens.                |
-| **No error tracking**         | A failure in production is currently a line in a log nobody is watching.                                                                                                    |
+| **External error alerting**   | First-party reports now land at `/admin/errors`. There is still no external pager or alerting on top of them.                                                               |
 | **Single administrator**      | The two-administrator rule needs two administrators. With one, the most consequential actions cannot be performed at all — which is safe, and also a dead end.              |
 
 ---
@@ -163,7 +163,7 @@ Not blocking, and each is a decision rather than an oversight.
 1. Buy the domain.
 2. Create the Supabase project. Set `DATABASE_URL` (pooled, 6543) and
    `DIRECT_URL` (direct, 5432).
-3. `npm run db:deploy`. **Do not seed.**
+3. `npm run db:migrate`. **Do not seed.**
 4. Create production operator accounts by hand.
 5. Generate `AUTH_SECRET`. Set it once.
 6. Verify the domain with Resend. Publish SPF, DKIM, DMARC. Unset
