@@ -70,9 +70,10 @@ would drift; one cannot.
 | Panel     | Adaeze Mbeki (chair), Frances Okonjo, Marcus Hale                           |
 | Creators  | Maya Rivers and Jordan Smith (claimed), Noor Haddad (unclaimed)             |
 
-Every account signs in at its own door with the password from `SEED_PASSWORD`
-(default `Palma-Development-2027`), at its own path: administration at
-`/admin`, moderation at `/portal`, judges at `/judge`, creators at `/creator`.
+Every development account signs in at its own door with the password from
+`SEED_PASSWORD`, at its own path: administration at `/admin`, moderation at
+`/portal`, judges at `/judge`, creators at `/creator`. Production operators are
+invited individually and never seeded.
 
 Noor Haddad has no account on purpose. PALMA wrote the record when she was
 first nominated and nobody holds it — which is the ordinary state of a record

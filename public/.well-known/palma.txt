@@ -9,6 +9,7 @@ Jurisdiction: England and Wales
 Canonical: https://palmaawards.com/.well-known/palma.txt
 Site: https://palmaawards.com
 Machine-readable-summary: https://palmaawards.com/llms.txt
+Machine-readable-calendar: https://palmaawards.com/.well-known/palma-calendar.txt
 Sitemap: https://palmaawards.com/sitemap.xml
 
 # ── What PALMA is ────────────────────────────────────────────────────────────

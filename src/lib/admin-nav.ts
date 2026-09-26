@@ -284,6 +284,12 @@ export const ADMIN_NAV: AdminGroup[] = [
     title: 'System',
     items: [
       {
+        href: '/admin/errors',
+        label: 'Error tracking',
+        permission: 'admin:manage_system',
+        icon: AlertOctagon,
+      },
+      {
         href: '/admin/audit',
         label: 'Audit log',
         permission: 'admin:view_audit_log',

@@ -14,6 +14,19 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error('[palma] unhandled error', error);
+    void fetch('/api/error-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'client',
+        message: error.message,
+        digest: error.digest,
+        stack: error.stack,
+        path: window.location.pathname,
+        userAgent: navigator.userAgent,
+      }),
+      keepalive: true,
+    }).catch(() => undefined);
   }, [error]);
 
   return (

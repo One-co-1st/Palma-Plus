@@ -60,12 +60,22 @@ const nextConfig: NextConfig = {
         source: '/.well-known/:path*',
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
-          { key: 'Cache-Control', value: 'public, max-age=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=900' },
         ],
       },
       {
         source: '/humans.txt',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+      },
+    ];
+  },
+
+  async rewrites() {
+    return [
+      {
+        // Live, database-backed season calendar served from the well-known space.
+        source: '/.well-known/palma-calendar.txt',
+        destination: '/well-known/palma-calendar',
       },
     ];
   },

@@ -33,6 +33,8 @@ export const RATE_LIMITS = {
    *  a right, and being rate-limited out of it would be the wrong failure. */
   objection: { bucket: 'record:objection', limit: 20, windowSeconds: 60 * 60 },
   report: { bucket: 'integrity:report', limit: 10, windowSeconds: 60 * 60 },
+  /** Client error reports. Enough for a real incident, not enough to flood the table. */
+  errorReport: { bucket: 'telemetry:error-report', limit: 30, windowSeconds: 60 * 60 },
   verifyLookup: { bucket: 'verify:lookup', limit: 120, windowSeconds: 60 * 60 },
   /**
    * The page counter.

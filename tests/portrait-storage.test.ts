@@ -17,8 +17,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const KEYS = ['R2_ACCOUNT_ID', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY'] as const;
 
 const FULL: Record<(typeof KEYS)[number], string> = {
-  R2_ACCOUNT_ID: 'ad2b6bd38d951c12957cf638100c4ee5',
-  R2_BUCKET: '44palma',
+  R2_ACCOUNT_ID: 'test-account-id',
+  R2_BUCKET: 'test-bucket',
   R2_ACCESS_KEY_ID: 'test-key-id',
   R2_SECRET_ACCESS_KEY: 'test-secret',
 };
